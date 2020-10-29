@@ -63,7 +63,6 @@ def run(argv=None, save_main_session=True):
     parser.add_argument(
         '--output',
         dest='output',
-        default='gs://de2020labs97/preprocessing/train_data',
         help='Output file to write results to.')
 
     parser.add_argument(
