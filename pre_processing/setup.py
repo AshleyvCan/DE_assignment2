@@ -34,6 +34,7 @@ import setuptools
 
 REQUIRED_PACKAGES = [
     'google-cloud-storage'
+    'sklearn'
 ]
 
 setuptools.setup(
