@@ -54,7 +54,7 @@ def parse(elem):
             'Sensor_18': [float(row[0])],
             'Sensor_19': [float(row[0])],
             'Sensor_20': [float(row[0])],
-            'Timestamp': [float(row[0])],
+            'timestamp': [float(row[0])],
         }
 
 
@@ -63,15 +63,15 @@ def parse(elem):
 
 
 def remove_novariance(data):
-    X = pd.DataFrame(data)
-    print(X.head())
+    df = pd.DataFrame(data)
+    X = df.loc[:, df.columns != 'timestamp']
     # Fit the feature selection method
     variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
 
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
     X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
-
+    X = pd.concat([X, df['RUL']], axis =1)
 
     yield X #convert.to_pcollection(df)
 
@@ -79,7 +79,7 @@ def remove_novariance(data):
 def process(data):
     model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
     result = model.predict(data)
-    results = {'timestamp': data['timestamp'],
+    results = {'timestamp': data['Timestamp'],
                'RUL': result
                }
 
