@@ -91,21 +91,20 @@ def remove_novariance(data):
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
     X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
-    dict = X.to_dict()
 
-    yield dict #convert.to_pcollection(df)
+
+    yield X #convert.to_pcollection(df)
 
 class MyPredictDoFn(beam.DoFn):
 
     def process(self, data):
-        # Read the csv file
-
+        model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
         result = model.predict(data)
         results = {'timestamp': data['timestamp'],
                    'RUL': result
                    }
 
-        return result
+        return results
 
 class WriteToBigQuery(beam.PTransform):
     """Generate, format, and write BigQuery table row information."""
