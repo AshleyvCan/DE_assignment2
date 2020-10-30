@@ -30,7 +30,7 @@ def timestamp2str(t, fmt='%Y-%m-%d %H:%M:%S.000'):
 def parse(elem):
         row = list(csv.reader([elem]))[0]
         return {
-            'Setting_0': [float(row[0]),]
+            'Setting_0': [float(row[0])],
             'Setting_1': [float(row[0])],
             'Setting_2': [float(row[0])],
             'Sensor_0': [float(row[0])],
