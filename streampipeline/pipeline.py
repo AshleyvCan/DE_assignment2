@@ -189,7 +189,7 @@ def run(argv=None, save_main_session=True):
         data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
             subscription=args.subscription)
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
-                | 'ParsFn' >> beam.Map(ParseFn())
+                | 'ParsFn' >> beam.ParDo(ParseFn())
                 | 'Remove_Variance' >> beam.Map(remove_novariance))
 
         output = (data | 'Predict' >> beam.Map(process))
