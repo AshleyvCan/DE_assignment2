@@ -80,7 +80,7 @@ class MyPredictDoFn(beam.DoFn):
 
     def process(self, element, **kwargs):
         model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
-        df = to_dataframe(element, self.schema)
+        df = to_dataframe(element, element.schema)
 
         result = model.predict(df)
         results = {'timestamp': df['timestamp'],
@@ -174,16 +174,15 @@ def run(argv=None, save_main_session=True):
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
                 | 'print' >> beam.Map(print))
+                | 'Predict' >> beam.ParDo(MyPredictDoFn())
+                | 'WriteToBQ' >> WriteToBigQuery(
+                            args.table_name,
+                            args.dataset,
+                            {
+                                'timestamp': 'INTEGER',
+                                'RUL': 'INTEGER',
 
-        output = (data | 'Predict' >> beam.ParDo(MyPredictDoFn()))
-        output | 'WriteToBQ' >> WriteToBigQuery(
-            args.table_name,
-            args.dataset,
-            {
-                'timestamp': 'INTEGER',
-                'RUL': 'INTEGER',
-
-            }, options.view_as(GoogleCloudOptions).project)
+                            }, options.view_as(GoogleCloudOptions).project))
 
 
 
