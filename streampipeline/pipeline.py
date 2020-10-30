@@ -188,10 +188,10 @@ def run(argv=None, save_main_session=True):
         data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
             subscription=args.subscription)
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
-                | 'ParseGameEventFn' >> beam.ParDo(ParseFn())
-                | 'Remove_Variance' >> beam.ParDo(remove_novariance))
+                | 'ParseGameEventFn' >> beam.Map(ParseFn())
+                | 'Remove_Variance' >> beam.Map(remove_novariance))
 
-        output = (data | 'Predict' >> beam.ParDo(MyPredictDoFn()))
+        output = (data | 'Predict' >> beam.Map(MyPredictDoFn()))
         output | 'WriteTeamScoreSums' >> WriteToBigQuery(
             args.table_name,
             args.dataset,
