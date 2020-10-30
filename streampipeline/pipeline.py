@@ -63,7 +63,7 @@ def parse(elem):
 
 
 def remove_novariance(data):
-    X = pd.DataFrame.(data)
+    X = pd.DataFrame.from_dict(data)
 
     # Fit the feature selection method
     variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
