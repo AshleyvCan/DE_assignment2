@@ -66,20 +66,21 @@ def remove_novariance(data):
     df = pd.DataFrame(data)
     X = df.loc[:, df.columns != 'timestamp']
     # Fit the feature selection method
-    variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
+    variance_selector = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
 
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
     X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
     X = pd.concat([X, df['timestamp']], axis =1)
 
-    yield X #convert.to_pcollection(df)
+    return X #convert.to_pcollection(df)
 
 
-def process(data):
+def process(pcoll):
     model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
-    result = model.predict(data)
-    results = {'timestamp': data['Timestamp'],
+    df = to_dataframe(pcoll)
+    result = model.predict(df)
+    results = {'timestamp': df['timestamp'],
                'RUL': result
                }
 
