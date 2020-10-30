@@ -71,7 +71,7 @@ def remove_novariance(data):
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
     X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
-    X = pd.concat([X, df['RUL']], axis =1)
+    X = pd.concat([X, df['timestamp']], axis =1)
 
     yield X #convert.to_pcollection(df)
 
