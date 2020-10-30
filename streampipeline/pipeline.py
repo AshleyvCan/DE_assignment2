@@ -190,7 +190,7 @@ def run(argv=None, save_main_session=True):
                 | 'ParsFn' >> beam.Map(process)
                 | 'Remove_Variance' >> beam.Map(remove_novariance))
 
-        output = (data | 'Predict' >> beam.Map(MyPredictDoFn()))
+        output = (data | 'Predict' >> beam.Map(process))
         output | 'WriteTeamScoreSums' >> WriteToBigQuery(
             args.table_name,
             args.dataset,
