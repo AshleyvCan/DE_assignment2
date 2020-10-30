@@ -24,7 +24,7 @@ def timestamp2str(t, fmt='%Y-%m-%d %H:%M:%S.000'):
     return datetime.fromtimestamp(t).strftime(fmt)
 
 
-class ParseGameEventFn(beam.DoFn):
+class ParseFn(beam.DoFn):
     """Parses the raw game event info into a Python dictionary.
 
     Each event line has the following format:
@@ -80,43 +80,32 @@ class ParseGameEventFn(beam.DoFn):
 
 
 
-class preprocess(beam.DoFn):
 
-    def remove_novariance(gs_data, gs_var, project_id, bucket_name, threshold = 0):
-        gs_data = beam.io.filesystems.FileSystems.open(gs_data)
-        X = df.loc[:, df.columns != 'RUL']
 
-        # Fit the feature selection method
-        variance_selector= joblib.load(beam.io.filesystems.FileSystems.open(gs_var))
+def remove_novariance(data):
+    X = data
 
-        # Apply selector on training data
-        columns_variance = variance_selector.get_support()
-        X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
+    # Fit the feature selection method
+    variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/ variance_selector.joblib'))
 
-        df = pd.concat([X, df['RUL']], axis =1).to_csv()
-        yield df #convert.to_pcollection(df)
+    # Apply selector on training data
+    columns_variance = variance_selector.get_support()
+    X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
 
-class pedict(Beam.Ptrain):
-    def train_model(train_data, project_id, bucket_name):
+
+    yield X #convert.to_pcollection(df)
+
+class MyPredictDoFn(beam.DoFn):
+
+    def process(self, data):
         # Read the csv file
-        train_data = beam.io.filesystems.FileSystems.open(train)
-        df = pd.read_csv(io.TextIOWrapper(train_data), index_col=0)
 
-        X = df.loc[:, df.columns != 'RUL']
-        Y = df['RUL']
+        result = model.predict(data)
+        results = {'timestamp': data['timestamp'],
+                   'RUL': result
+                   }
 
-        # Training of ML model
-        knn_model = neighbors.KNeighborsClassifier(n_neighbors=2, weights='uniform')
-        knn_model.fit(X, Y)
-
-        # Save model in bucket
-        save_model(knn_model, project_id, bucket_name)
-        print(X.head())
-
-        # Evaluate model performance on training data
-        MAE_score = metrics.mean_absolute_error(Y, knn_model.predict(X))
-        print(MAE_score)
-        return json.dumps('MAE_score: ', sort_keys=False, indent=4)
+        return result
 
 class WriteToBigQuery(beam.PTransform):
     """Generate, format, and write BigQuery table row information."""
@@ -166,19 +155,8 @@ def run(argv=None, save_main_session=True):
              'Must already exist.')
     parser.add_argument(
         '--table_name',
-        default='leader_board',
+        default='results',
         help='The BigQuery table name. Should not already exist.')
-    parser.add_argument(
-        '--window_duration',
-        type=int,
-        default=3,
-        help='Numeric value of fixed window duration for '
-             'analysis, in minutes')
-    parser.add_argument(
-        '--allowed_lateness',
-        type=int,
-        default=6,
-        help='Numeric value of allowed data lateness, in minutes')
 
     args, pipeline_args = parser.parse_known_args(argv)
 
@@ -207,51 +185,23 @@ def run(argv=None, save_main_session=True):
         # from the pubsub data elements, and parse the data.
 
         # Read from PubSub into a PCollection.
-        if args.subscription:
-            data = p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
-                subscription=args.subscription)
-        else:
-            data = p | 'ReadPubSub' >> beam.io.ReadFromPubSub(topic=args.topic)
 
-        events = (
-                data
+        data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
+            subscription=args.subscription)
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
-                | 'ParseGameEventFn' >> beam.ParDo(ParseGameEventFn())
-                | 'AddEventTimestamps' >> beam.Map(
-            lambda elem: beam.window.TimestampedValue(elem, elem['timestamp'])))
+                | 'ParseGameEventFn' >> beam.ParDo(ParseFn())
+                | 'Remove_Variance' >> beam.FlatMap(remove_novariance))
 
-        # Get team scores and write the results to BigQuery
-        (  # pylint: disable=expression-not-assigned
-                events
-                | 'CalculateTeamScores' >> CalculateTeamScores(
-            args.team_window_duration, args.allowed_lateness)
-                | 'TeamScoresDict' >> beam.ParDo(TeamScoresDict())
-                | 'WriteTeamScoreSums' >> WriteToBigQuery(
-            args.table_name + '_teams',
+        output = (data | 'Predict' >> beam.ParDo(MyPredictDoFn()))
+        output | 'WriteTeamScoreSums' >> WriteToBigQuery(
+            args.table_name,
             args.dataset,
             {
-                'Setting_0': 'INTEGER',
-                'RUL': 'INTEGER',
-
-            },
-            options.view_as(GoogleCloudOptions).project))
-
-        def format_user_score_sums(user_score):
-            (user, score) = user_score
-            return {'timestamp': user, 'RUL': score}
-
-        # Get user scores and write the results to BigQuery
-        (  # pylint: disable=expression-not-assigned
-                events
-                | 'CalculateUserScores' >> CalculateUserScores(args.allowed_lateness)
-                | 'FormatUserScoreSums' >> beam.Map(format_user_score_sums)
-                | 'WriteUserScoreSums' >> WriteToBigQuery(
-            args.table_name + '_users',
-            args.dataset, {
                 'timestamp': 'INTEGER',
                 'RUL': 'INTEGER',
-            },
-            options.view_as(GoogleCloudOptions).project))
+
+            }
+
 
 
 if __name__ == '__main__':
