@@ -124,7 +124,7 @@ class WriteToBigQuery(beam.PTransform):
         self.table_name = table_name
         self.dataset = dataset
         self.schema = schema
-        self.project = project
+        self.project = onyx-syntax-289118
 
     def get_schema(self):
         """Build the output table schema."""
