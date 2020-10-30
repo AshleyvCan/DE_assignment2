@@ -26,66 +26,44 @@ def timestamp2str(t, fmt='%Y-%m-%d %H:%M:%S.000'):
     return datetime.fromtimestamp(t).strftime(fmt)
 
 
-class ParseFn(beam.DoFn):
-    """Parses the raw game event info into a Python dictionary.
 
-    Each event line has the following format:
-        Setting_0,Setting_1,Setting_2,Sensor_0,Sensor_1,Sensor_2,Sensor_3,Sensor_4,Sensor_5,Sensor_6,Sensor_7,Sensor_8,Sensor_9,Sensor_10,Sensor_11,Sensor_12,Sensor_13,Sensor_14,Sensor_15,Sensor_16,Sensor_17,Sensor_18,Sensor_19,Sensor_20,Timestamp
+def parse(elem):
+        row = list(csv.reader([elem]))[0]
+        return {
+            'Setting_0': row[0],
+            'Setting_1': row[1],
+            'Setting_2': row[2],
+            'Sensor_0': row[3],
+            'Sensor_1': row[4],
+            'Sensor_2': row[5],
+            'Sensor_3': row[6],
+            'Sensor_4': row[7],
+            'Sensor_5': row[8],
+            'Sensor_6': row[9],
+            'Sensor_7': row[10],
+            'Sensor_8': row[11],
+            'Sensor_9': row[12],
+            'Sensor_10': row[13],
+            'Sensor_11': row[14],
+            'Sensor_12': row[15],
+            'Sensor_13': row[16],
+            'Sensor_14': row[17],
+            'Sensor_15': row[18],
+            'Sensor_16': row[19],
+            'Sensor_17': row[20],
+            'Sensor_18': row[21],
+            'Sensor_19': row[22],
+            'Sensor_20': row[23],
+            'Timestamp': row[24],
+        }
 
-
-    e.g.:
-        0,1,0.0023,0.0003,100.0,518.67,643.02,1585.29,1398.21,14.62,21.61,553.9,2388.04,9050.17,1.3,47.2,521.72,2388.03,8125.55,8.4052,0.03,392,2388,100.0,38.86,23.3735,1603961200.0
-
-    The human-readable time string is not used here.
-    """
-
-    def __init__(self):
-        # TODO(BEAM-6158): Revert the workaround once we can pickle super() on py3.
-        # super(ParseGameEventFn, self).__init__()
-        beam.DoFn.__init__(self)
-        self.num_parse_errors = Metrics.counter(self.__class__, 'num_parse_errors')
-
-    def process(self, elem):
-        try:
-            row = list(csv.reader([elem]))[0]
-            yield {
-                'Setting_0': row[0],
-                'Setting_1': row[1],
-                'Setting_2': row[2],
-                'Sensor_0': row[3],
-                'Sensor_1': row[4],
-                'Sensor_2': row[5],
-                'Sensor_3': row[6],
-                'Sensor_4': row[7],
-                'Sensor_5': row[8],
-                'Sensor_6': row[9],
-                'Sensor_7': row[10],
-                'Sensor_8': row[11],
-                'Sensor_9': row[12],
-                'Sensor_10': row[13],
-                'Sensor_11': row[14],
-                'Sensor_12': row[15],
-                'Sensor_13': row[16],
-                'Sensor_14': row[17],
-                'Sensor_15': row[18],
-                'Sensor_16': row[19],
-                'Sensor_17': row[20],
-                'Sensor_18': row[21],
-                'Sensor_19': row[22],
-                'Sensor_20': row[23],
-                'Timestamp': row[24],
-            }
-        except:  # pylint: disable=bare-except
-            # Log and count parse errors
-            self.num_parse_errors.inc()
-            logging.error('Parse error on "%s"', elem)
 
 
 
 
 
 def remove_novariance(data):
-    X = pd.DataFrame.from_dict(data)
+    X = pd.DataFrame.(data)
 
     # Fit the feature selection method
     variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
@@ -189,7 +167,7 @@ def run(argv=None, save_main_session=True):
         data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
             subscription=args.subscription)
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
-                | 'ParsFn' >> beam.ParDo(ParseFn())
+                | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance))
 
         output = (data | 'Predict' >> beam.Map(process))
