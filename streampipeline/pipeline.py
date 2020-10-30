@@ -173,7 +173,6 @@ def run(argv=None, save_main_session=True):
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
-                | 'print' >> beam.Map(print))
                 | 'Predict' >> beam.ParDo(MyPredictDoFn())
                 | 'WriteToBQ' >> WriteToBigQuery(
                             args.table_name,
