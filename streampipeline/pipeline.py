@@ -30,31 +30,31 @@ def timestamp2str(t, fmt='%Y-%m-%d %H:%M:%S.000'):
 def parse(elem):
         row = list(csv.reader([elem]))[0]
         return {
-            'Setting_0': row[0],
-            'Setting_1': row[1],
-            'Setting_2': row[2],
-            'Sensor_0': row[3],
-            'Sensor_1': row[4],
-            'Sensor_2': row[5],
-            'Sensor_3': row[6],
-            'Sensor_4': row[7],
-            'Sensor_5': row[8],
-            'Sensor_6': row[9],
-            'Sensor_7': row[10],
-            'Sensor_8': row[11],
-            'Sensor_9': row[12],
-            'Sensor_10': row[13],
-            'Sensor_11': row[14],
-            'Sensor_12': row[15],
-            'Sensor_13': row[16],
-            'Sensor_14': row[17],
-            'Sensor_15': row[18],
-            'Sensor_16': row[19],
-            'Sensor_17': row[20],
-            'Sensor_18': row[21],
-            'Sensor_19': row[22],
-            'Sensor_20': row[23],
-            'Timestamp': row[24],
+            'Setting_0': [float(row[0]),]
+            'Setting_1': [float(row[0])],
+            'Setting_2': [float(row[0])],
+            'Sensor_0': [float(row[0])],
+            'Sensor_1': [float(row[0])],
+            'Sensor_2': [float(row[0])],
+            'Sensor_3': [float(row[0])],
+            'Sensor_4': [float(row[0])],
+            'Sensor_5': [float(row[0])],
+            'Sensor_6': [float(row[0])],
+            'Sensor_7': [float(row[0])],
+            'Sensor_8': [float(row[0])],
+            'Sensor_9': [float(row[0])],
+            'Sensor_10': [float(row[0])],
+            'Sensor_11': [float(row[0])],
+            'Sensor_12': [float(row[0])],
+            'Sensor_13': [float(row[0])],
+            'Sensor_14': [float(row[0])],
+            'Sensor_15': [float(row[0])],
+            'Sensor_16': [float(row[0])],
+            'Sensor_17': [float(row[0])],
+            'Sensor_18': [float(row[0])],
+            'Sensor_19': [float(row[0])],
+            'Sensor_20': [float(row[0])],
+            'Timestamp': [float(row[0])],
         }
 
 
@@ -63,7 +63,7 @@ def parse(elem):
 
 
 def remove_novariance(data):
-    X = pd.DataFrame.from_dict(data)
+    X = pd.DataFrame(data)
 
     # Fit the feature selection method
     variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
