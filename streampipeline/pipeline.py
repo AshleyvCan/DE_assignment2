@@ -86,7 +86,7 @@ def remove_novariance(data):
     X = data
 
     # Fit the feature selection method
-    variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/ variance_selector.joblib'))
+    variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
 
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
