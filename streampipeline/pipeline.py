@@ -16,6 +16,7 @@ from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
 from apache_beam.options.pipeline_options import StandardOptions
+from apache_beam.dataframe.convert import to_dataframe
 from apache_beam.transforms import trigger
 import joblib
 import pandas as pd
