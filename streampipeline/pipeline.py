@@ -78,9 +78,9 @@ def remove_novariance(data):
 
 class MyPredictDoFn(beam.DoFn):
 
-    def process(pcoll):
+    def process(self, element, **kwargs):
         model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
-        df = to_dataframe(pcoll)
+        df = to_dataframe([element])
         result = model.predict(df)
         results = {'timestamp': df['timestamp'],
                    'RUL': result
