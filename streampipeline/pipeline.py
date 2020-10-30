@@ -17,7 +17,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
 from apache_beam.options.pipeline_options import StandardOptions
 from apache_beam.transforms import trigger
-
+import joblib
 
 def timestamp2str(t, fmt='%Y-%m-%d %H:%M:%S.000'):
     """Converts a unix timestamp into a formatted string."""
