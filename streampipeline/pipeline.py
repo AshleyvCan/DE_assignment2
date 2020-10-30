@@ -98,7 +98,7 @@ def remove_novariance(data):
 
 def process(data):
     model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
-    result = model.predict(data)
+    result = model.predict(data.reshape(1, -1))
     results = {'timestamp': data['timestamp'],
                'RUL': result
                }
