@@ -100,7 +100,6 @@ def remove_novariance(data):
 
 def process(data):
     model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
-    data_ar = np.fromstring(data)
     result = model.predict(data_ar)
     results = {'timestamp': data['timestamp'],
                'RUL': result
@@ -190,11 +189,11 @@ def run(argv=None, save_main_session=True):
         data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
             subscription=args.subscription)
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
-                | 'ParsFn' >> beam.Map(process)
+                | 'ParsFn' >> beam.Map(ParseFn)
                 | 'Remove_Variance' >> beam.Map(remove_novariance))
 
         output = (data | 'Predict' >> beam.Map(process))
-        output | 'WriteTeamScoreSums' >> WriteToBigQuery(
+        output | 'WriteToBQ' >> WriteToBigQuery(
             args.table_name,
             args.dataset,
             {
