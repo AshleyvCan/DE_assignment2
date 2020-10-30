@@ -83,7 +83,7 @@ class ParseFn(beam.DoFn):
 
 
 def remove_novariance(data):
-    X = data
+    X = pd.DataFrame.from_dict(data)
 
     # Fit the feature selection method
     variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
@@ -91,9 +91,9 @@ def remove_novariance(data):
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
     X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
+    dict = X.to_dict()
 
-
-    yield X #convert.to_pcollection(df)
+    yield dict #convert.to_pcollection(df)
 
 class MyPredictDoFn(beam.DoFn):
 
