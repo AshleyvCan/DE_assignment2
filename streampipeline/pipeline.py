@@ -19,6 +19,8 @@ from apache_beam.options.pipeline_options import StandardOptions
 from apache_beam.transforms import trigger
 import joblib
 import pandas as pd
+import numpy as np
+
 def timestamp2str(t, fmt='%Y-%m-%d %H:%M:%S.000'):
     """Converts a unix timestamp into a formatted string."""
     return datetime.fromtimestamp(t).strftime(fmt)
@@ -98,7 +100,8 @@ def remove_novariance(data):
 
 def process(data):
     model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
-    result = model.predict(data.reshape(1, -1))
+    data_ar = np.fromstring(data)
+    result = model.predict(data_ar)
     results = {'timestamp': data['timestamp'],
                'RUL': result
                }
