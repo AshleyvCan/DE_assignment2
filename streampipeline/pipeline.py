@@ -80,8 +80,8 @@ class MyPredictDoFn(beam.DoFn):
 
     def process(self, element, **kwargs):
         model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
-        df = pd.DataFrame([element])
-        df = df.apply(pd.to_numeric)
+        df = to_dataframe(element, self.schema)
+
         result = model.predict(df)
         results = {'timestamp': df['timestamp'],
                    'RUL': result
@@ -173,7 +173,7 @@ def run(argv=None, save_main_session=True):
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
-                |beam.Map(print))
+                | 'print' >> beam.Map(print))
 
         output = (data | 'Predict' >> beam.ParDo(MyPredictDoFn()))
         output | 'WriteToBQ' >> WriteToBigQuery(
