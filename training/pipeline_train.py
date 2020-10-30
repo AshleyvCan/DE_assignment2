@@ -16,7 +16,6 @@ from sklearn import neighbors, metrics
 from google.cloud import storage
 import joblib
 
-
 # Train and Save ML model
 def train_model(gs_data, project_id, bucket_name):
 
