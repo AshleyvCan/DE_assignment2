@@ -64,7 +64,7 @@ def parse(elem):
 
 def remove_novariance(data):
     X = pd.DataFrame(data)
-
+    print(X.head())
     # Fit the feature selection method
     variance_selector= joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
 
@@ -78,7 +78,7 @@ def remove_novariance(data):
 
 def process(data):
     model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
-    result = model.predict(data_ar)
+    result = model.predict(data)
     results = {'timestamp': data['timestamp'],
                'RUL': result
                }
