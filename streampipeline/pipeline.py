@@ -76,16 +76,17 @@ def remove_novariance(data):
 
     return X #convert.to_pcollection(df)
 
+class MyPredictDoFn(beam.DoFn):
 
-def process(pcoll):
-    model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
-    df = to_dataframe(pcoll)
-    result = model.predict(df)
-    results = {'timestamp': df['timestamp'],
-               'RUL': result
-               }
+    def process(pcoll):
+        model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
+        df = to_dataframe(pcoll)
+        result = model.predict(df)
+        results = {'timestamp': df['timestamp'],
+                   'RUL': result
+                   }
 
-    return results
+        return results
 
 class WriteToBigQuery(beam.PTransform):
     """Generate, format, and write BigQuery table row information."""
@@ -172,7 +173,7 @@ def run(argv=None, save_main_session=True):
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance))
 
-        output = (data | 'Predict' >> beam.Map(process))
+        output = (data | 'Predict' >> beam.ParDo(MyPredictDoFn()))
         output | 'WriteToBQ' >> WriteToBigQuery(
             args.table_name,
             args.dataset,
