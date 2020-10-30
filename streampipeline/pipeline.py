@@ -200,7 +200,7 @@ def run(argv=None, save_main_session=True):
                 'timestamp': 'INTEGER',
                 'RUL': 'INTEGER',
 
-            }
+            })
 
 
 
