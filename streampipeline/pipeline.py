@@ -81,8 +81,8 @@ class MyPredictDoFn(beam.DoFn):
     def process(self, element, **kwargs):
         model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
         df = pd.DataFrame(element)
-        X = df.loc[:, df.columns != 'timestamp']
-        result = model.predict(X) #!!!! EERRROOORRR hier moet de timestamp af
+
+        result = model.predict(df)
         results = {'timestamp': df['timestamp'],
                    'RUL': result
                    }
