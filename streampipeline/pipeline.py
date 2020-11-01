@@ -86,6 +86,9 @@ class MyPredictDoFn(beam.DoFn):
         results = {'timestamp': df['timestamp'],
                    'RUL': result
                    }
+        logging.getLogger().setLevel(logging.INFO)
+        logging.info("Print the element %s", results)
+
 
         return results
 
