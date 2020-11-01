@@ -55,7 +55,7 @@ def parse(elem):
             'Sensor_18': [float(row[21])],
             'Sensor_19': [float(row[22])],
             'Sensor_20': [float(row[23])],
-            'timestamp': [float(row[24])],
+            'timestamp': [str(row[24])],
         }
 
 
@@ -184,8 +184,8 @@ def run(argv=None, save_main_session=True):
                             args.table_name,
                             args.dataset,
                             {
-                                'timestamp': 'FLOAT',
-                                'RUL': 'FLOAT',
+                                'timestamp': 'STRING',
+                                'RUL': 'INTEGER',
 
                             }, options.view_as(GoogleCloudOptions).project))
 
