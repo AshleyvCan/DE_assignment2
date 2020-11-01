@@ -55,7 +55,7 @@ def parse(elem):
             'Sensor_18': [float(row[21])],
             'Sensor_19': [float(row[22])],
             'Sensor_20': [float(row[23])],
-            'timestamp': [str(row[24])],
+            'timestamp': [int(row[24])/1000],
         }
 
 
@@ -85,7 +85,7 @@ class MyPredictDoFn(beam.DoFn):
         df = pd.DataFrame(element)
         X = df.loc[:, df.columns != 'timestamp']
         result = model.predict(X)
-        results = {'timestamp': str(df['timestamp']),
+        results = {'timestamp': df['timestamp'],
                    'RUL': int(result)
                    }
         logging.getLogger().setLevel(logging.INFO)
@@ -184,7 +184,7 @@ def run(argv=None, save_main_session=True):
                             args.table_name,
                             args.dataset,
                             {
-                                'timestamp': 'STRING',
+                                'timestamp': 'INTEGER',
                                 'RUL': 'INTEGER',
 
                             }, options.view_as(GoogleCloudOptions).project))
