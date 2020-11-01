@@ -72,7 +72,9 @@ def remove_novariance(data):
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
     X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
-    X = pd.concat([X, df['timestamp']], axis =1)
+    X = pd.concat([X, df['timestamp']], axis =1
+    logging.getLogger().setLevel(logging.INFO)
+    logging.info("test")
 
     return X #convert.to_pcollection(df)
 
@@ -87,7 +89,7 @@ class MyPredictDoFn(beam.DoFn):
                    'RUL': result
                    }
         logging.getLogger().setLevel(logging.INFO)
-        logging.info("Print the element %s", results)
+        logging.info(results)
 
 
         return results
@@ -161,7 +163,7 @@ def run(argv=None, save_main_session=True):
     # We use the save_main_session option because one or more DoFn's in this
     # workflow rely on global context (e.g., a module imported at module level).
     options.view_as(SetupOptions).save_main_session = save_main_session
-
+    logging.getLogger().setLevel(logging.INFO)
     # Enforce that this pipeline is always run in streaming mode
     options.view_as(StandardOptions).streaming = True
 
