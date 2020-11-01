@@ -184,7 +184,7 @@ def run(argv=None, save_main_session=True):
                             args.table_name,
                             args.dataset,
                             {
-                                'timestamp': 'INTEGER',
+                                'timestamp': 'STRING',
                                 'RUL': 'INTEGER',
 
                             }, options.view_as(GoogleCloudOptions).project))
