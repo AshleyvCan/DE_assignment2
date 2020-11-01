@@ -92,7 +92,7 @@ class MyPredictDoFn(beam.DoFn):
         logging.info(results)
 
 
-        return results
+        yield results
 
 class WriteToBigQuery(beam.PTransform):
     """Generate, format, and write BigQuery table row information."""
