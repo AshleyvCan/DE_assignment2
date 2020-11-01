@@ -85,10 +85,11 @@ class MyPredictDoFn(beam.DoFn):
         df = pd.DataFrame(element)
         X = df.loc[:, df.columns != 'timestamp']
         result = model.predict(X)
-        results = {'timestamp': str(df['timestamp']),
+        results = {'timestamp': df['timestamp'].values,
                    'RUL': int(result)
                    }
         logging.getLogger().setLevel(logging.INFO)
+        logging.info(X)
         logging.info(results)
 
 
@@ -184,7 +185,7 @@ def run(argv=None, save_main_session=True):
                     args.table_name,
                     args.dataset,
                     {
-                        'timestamp': 'STRING',
+                        'timestamp': 'FLOAT',
                         'RUL': 'INTEGER',
 
                     }, options.view_as(GoogleCloudOptions).project))
