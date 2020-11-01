@@ -85,7 +85,7 @@ class MyPredictDoFn(beam.DoFn):
         df = pd.DataFrame(element)
         X = df.loc[:, df.columns != 'timestamp']
         result = model.predict(X)
-        results = {'timestamp': df['timestamp'].values,
+        results = {'timestamp': df['timestamp'].values[0],
                    'RUL': int(result)
                    }
         logging.getLogger().setLevel(logging.INFO)
