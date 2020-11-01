@@ -55,7 +55,7 @@ def parse(elem):
             'Sensor_18': [float(row[21])],
             'Sensor_19': [float(row[22])],
             'Sensor_20': [float(row[23])],
-            'timestamp': [int(row[24])/1000],
+            'timestamp': [int(float(row[24]))/1000],
         }
 
 
