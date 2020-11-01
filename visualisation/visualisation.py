@@ -48,7 +48,7 @@ app = dash.Dash(__name__)
 # The layout of the webapi
 app.layout = html.Div([dcc.Graph(id='graph_RUL'),
                        dcc.Interval(id = 'realtime_graph',
-                                    interval = 1000, #update every cycle (this is in miliseconds)
+                                    interval = 1000, #update every second (this is in miliseconds)
                                     n_intervals = 0)])
 
 # Call back: to make the plot real-time
