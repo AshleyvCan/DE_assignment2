@@ -74,7 +74,7 @@ def remove_novariance(data):
     X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
     X = pd.concat([X, df['timestamp']], axis =1)
     logging.getLogger().setLevel(logging.INFO)
-    logging.info("test")
+    logging.info(X)
 
     return X #convert.to_pcollection(df)
 
