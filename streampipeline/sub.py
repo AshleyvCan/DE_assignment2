@@ -49,5 +49,5 @@ def read_data(project_id, subscription_id):
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
-    #create_subscription("onyx-syntax-289118", "test_data", "test_data_sub1")
-    read_data("onyx-syntax-289118", "test_data_sub1")
+    create_subscription("onyx-syntax-289118", "test_data", "test_data_sub1")
+    #read_data("onyx-syntax-289118", "test_data_sub1")

@@ -116,7 +116,7 @@ class PredictWindows(beam.PTransform):
             accumulation_mode=trigger.AccumulationMode.ACCUMULATING,
             allowed_lateness=self.allowed_lateness_seconds)
                 # Extract and sum username/score pairs from the event data.
-                | 'Prediction' >> beam.Map(lambda b: b.decode('utf-8'))
+                | 'Prediction' >> beam.Map(lambda b: b.decode('utf-8')))
 
 class DecodeWindows(beam.PTransform):
     """Extract user/score pairs from the event stream using processing time, via
