@@ -194,7 +194,7 @@ def run(argv=None, save_main_session=True):
     parser.add_argument(
         '--allowed_lateness',
         type=int,
-        default=10,
+        default=1,
         help='Numeric value of allowed data lateness, in minutes')
 
     args, pipeline_args = parser.parse_known_args(argv)
