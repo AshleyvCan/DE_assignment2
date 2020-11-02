@@ -139,7 +139,7 @@ class DecodeWindows(beam.PTransform):
             accumulation_mode=trigger.AccumulationMode.ACCUMULATING,
             allowed_lateness=self.allowed_lateness_seconds)
                 # Extract and sum username/score pairs from the event data.
-                | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
+                | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8')))
 
 class WriteToBigQuery(beam.PTransform):
     """Generate, format, and write BigQuery table row information."""
