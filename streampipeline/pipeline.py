@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 
 import apache_beam as beam
+from apache_beam import window
 from apache_beam.metrics.metric import Metrics
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.options.pipeline_options import PipelineOptions
@@ -204,7 +205,8 @@ def run(argv=None, save_main_session=True):
 
         data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
             subscription=args.subscription)
-                | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8', errors ='ignore'))
+                | 'window' >> beam.WindowInto(window.SlindingWindows(30, 5))
+                | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
                 | 'Predict' >> PredictWindows(args.allowed_lateness))
