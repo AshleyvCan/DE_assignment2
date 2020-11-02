@@ -116,7 +116,30 @@ class PredictWindows(beam.PTransform):
             accumulation_mode=trigger.AccumulationMode.ACCUMULATING,
             allowed_lateness=self.allowed_lateness_seconds)
                 # Extract and sum username/score pairs from the event data.
-                | 'Prediction' >> beam.ParDo(MyPredictDoFn()))
+                | 'Prediction' >> beam.Map(lambda b: b.decode('utf-8'))
+
+class DecodeWindows(beam.PTransform):
+    """Extract user/score pairs from the event stream using processing time, via
+    global windowing. Get periodic updates on all users' running scores.
+    """
+
+    def __init__(self, allowed_lateness):
+        # TODO(BEAM-6158): Revert the workaround once we can pickle super() on py3.
+        # super(CalculateUserScores, self).__init__()
+        beam.PTransform.__init__(self)
+        self.allowed_lateness_seconds = allowed_lateness * 60
+
+    def expand(self, pcoll):
+        return (
+                pcoll
+                # Get periodic results every ten events.
+                | 'DecodeWindows' >> beam.WindowInto(
+            beam.window.GlobalWindows(),
+            trigger=trigger.Repeatedly(trigger.AfterCount(10)),
+            accumulation_mode=trigger.AccumulationMode.ACCUMULATING,
+            allowed_lateness=self.allowed_lateness_seconds)
+                # Extract and sum username/score pairs from the event data.
+                | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8')))
 
 class WriteToBigQuery(beam.PTransform):
     """Generate, format, and write BigQuery table row information."""
@@ -204,7 +227,7 @@ def run(argv=None, save_main_session=True):
 
         data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
             subscription=args.subscription)
-                | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8', errors ='ignore'))
+                | 'DecodeString' >> DecodeWindows(args.allowed_lateness)
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
                 | 'Predict' >> PredictWindows(args.allowed_lateness))

@@ -38,5 +38,6 @@ if __name__ == '__main__':
     # create_topic("onyx-syntax-289118", "game_data")
     #create_topic("onyx-syntax-289118", "teamscore")
     #create_topic("onyx-syntax-289118", "test_data")
+
     publish_messages("onyx-syntax-289118", "test_data", r"C:\Users\jeroe\OneDrive - TU Eindhoven\DSE\Semester 1.1\Data Engeneering\DE_assignment2\data\test")
 
