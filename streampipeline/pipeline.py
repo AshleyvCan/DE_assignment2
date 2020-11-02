@@ -229,7 +229,7 @@ def run(argv=None, save_main_session=True):
 
         data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
             subscription=args.subscription)
-                | 'window' >> beam.WindowInto(window.SlidingWindows(30,5))
+                | 'Window' >> beam.WindowInto(window.FixedWindows(30))
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
