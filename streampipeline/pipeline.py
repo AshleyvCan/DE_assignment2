@@ -233,7 +233,7 @@ def run(argv=None, save_main_session=True):
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
-                | 'Predict' >> PredictWindows(args.allowed_lateness))
+                | 'Predict' >> beam.ParDo(MyPredictDoFn()))
 
         (data | 'WriteToBQ' >> WriteToBigQuery(
                     args.table_name,
