@@ -95,6 +95,29 @@ class MyPredictDoFn(beam.DoFn):
 
         yield results
 
+class PredictWindows(beam.PTransform):
+    """Extract user/score pairs from the event stream using processing time, via
+    global windowing. Get periodic updates on all users' running scores.
+    """
+
+    def __init__(self, allowed_lateness):
+        # TODO(BEAM-6158): Revert the workaround once we can pickle super() on py3.
+        # super(CalculateUserScores, self).__init__()
+        beam.PTransform.__init__(self)
+        self.allowed_lateness_seconds = allowed_lateness * 60
+
+    def expand(self, pcoll):
+        return (
+                pcoll
+                # Get periodic results every ten events.
+                | 'GlobalWindows' >> beam.WindowInto(
+            beam.window.GlobalWindows(),
+            trigger=trigger.Repeatedly(trigger.AfterCount(10)),
+            accumulation_mode=trigger.AccumulationMode.ACCUMULATING,
+            allowed_lateness=self.allowed_lateness_seconds)
+                # Extract and sum username/score pairs from the event data.
+                | 'Prediction' >> beam.ParDo(MyPredictDoFn()))
+
 class WriteToBigQuery(beam.PTransform):
     """Generate, format, and write BigQuery table row information."""
 
@@ -145,6 +168,11 @@ def run(argv=None, save_main_session=True):
         '--table_name',
         default='results',
         help='The BigQuery table name. Should not already exist.')
+    parser.add_argument(
+        '--allowed_lateness',
+        type=int,
+        default=10,
+        help='Numeric value of allowed data lateness, in minutes')
 
     args, pipeline_args = parser.parse_known_args(argv)
 
@@ -179,7 +207,7 @@ def run(argv=None, save_main_session=True):
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
-                | 'Predict' >> beam.ParDo(MyPredictDoFn()))
+                | 'Predict' >> PredictWindows(args.allowed_lateness))
 
         (data | 'WriteToBQ' >> WriteToBigQuery(
                     args.table_name,
