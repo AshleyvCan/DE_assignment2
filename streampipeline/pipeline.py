@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 
 import apache_beam as beam
+from apache_beam import window
 from apache_beam.metrics.metric import Metrics
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.options.pipeline_options import PipelineOptions
@@ -141,6 +142,7 @@ class DecodeWindows(beam.PTransform):
                 # Extract and sum username/score pairs from the event data.
                 | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8')))
 
+
 class WriteToBigQuery(beam.PTransform):
     """Generate, format, and write BigQuery table row information."""
 
@@ -227,7 +229,8 @@ def run(argv=None, save_main_session=True):
 
         data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
             subscription=args.subscription)
-                | 'DecodeString' >> DecodeWindows(args.allowed_lateness)
+                | 'window' >> beam.WindowInto(window.SlidingWindows(30,5))
+                | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
                 | 'Predict' >> PredictWindows(args.allowed_lateness))
