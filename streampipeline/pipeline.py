@@ -204,7 +204,7 @@ def run(argv=None, save_main_session=True):
 
         data = (p | 'ReadPubSub' >> beam.io.ReadFromPubSub(
             subscription=args.subscription)
-                | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8'))
+                | 'DecodeString' >> beam.Map(lambda b: b.decode('utf-8', errors ='ignore'))
                 | 'ParsFn' >> beam.Map(parse)
                 | 'Remove_Variance' >> beam.Map(remove_novariance)
                 | 'Predict' >> PredictWindows(args.allowed_lateness))
