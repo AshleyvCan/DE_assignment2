@@ -36,7 +36,7 @@ def publish_messages(project_id, topic_id, data_file):
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
-    create_topic("de2020-6", "test_data")
-
-    publish_messages("de2020-6", "test_data", r"C:\Users\20200191\Documents\data_engineering\DE_assignment2\data\test")
+    #create_topic("de2020-6", "test_data")
+    #create_topic("de2020-6", "sensor_data")
+    publish_messages("de2020-6", "sensor_data", r"C:\Users\20200191\Documents\data_engineering\DE_assignment2\data\test")
 

@@ -28,8 +28,8 @@ def convert_to_df(gs_data):
     df = pd.DataFrame(dict_csv)
 
     # Remove index and convert data to numeric
-    #df = df.iloc[:, 1:]
-
+    df = df.iloc[:, 1:]
+    print(df.columns)
     headers = ['Setting_0', 'Setting_1', 'Setting_2', 'Sensor_0', 'Sensor_1', 'Sensor_2', 'Sensor_3', 'Sensor_4',
                'Sensor_5','Sensor_6', 'Sensor_7', 'Sensor_8', 'Sensor_9', 'Sensor_10', 'Sensor_11', 'Sensor_12',
                'Sensor_13','Sensor_14','Sensor_15', 'Sensor_16', 'Sensor_17', 'Sensor_18', 'Sensor_19', 'Sensor_20',
@@ -37,7 +37,7 @@ def convert_to_df(gs_data):
     df = df.apply(pd.to_numeric)
 
     df.columns = headers
-
+    print(df.head())
     return df
 
 # Remove features with low or no variance
@@ -52,7 +52,7 @@ def remove_novariance(joblib_name, project_id, bucket_name, gs_data, threshold =
     variance_selector.fit(X)
 
     # Save the selector in bucket
-    save_model(variance_selector, project_id, bucket_name, joblib_name)
+    save_model(variance_selector, project_id, bucket_name, joblib_name)#'variance_selector.joblib')
 
     # Apply selector on training data
     columns_variance = variance_selector.get_support()

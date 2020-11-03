@@ -59,7 +59,7 @@ app.layout = html.Div([dcc.Graph(id='graph_RUL'),
 def graph(n_inter):
     # Read last 35 rows of the table (i.e. the last 35 cycles)
     df = read_data()
-
+    print(df.tail())
     # Plot the time vs the predicted RUL
     fig1 = plotly.express.line(data_frame=df,
                                x= 'timestamp',
