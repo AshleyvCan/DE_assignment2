@@ -68,7 +68,7 @@ def remove_novariance(data):
     df = pd.DataFrame(data)
     X = df.loc[:, df.columns != 'timestamp']
     # Fit the feature selection method
-    variance_selector = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/preproces_models/variance_selector.joblib'))
+    variance_selector = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020assignment2/preproces_models/variance_selector.joblib'))
 
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
@@ -82,7 +82,7 @@ def remove_novariance(data):
 class MyPredictDoFn(beam.DoFn):
 
     def process(self, element, **kwargs):
-        model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020labs97/ml_models/model.joblib'))
+        model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020assignment2/ml_models/model.joblib'))
         df = pd.DataFrame(element)
         X = df.loc[:, df.columns != 'timestamp']
         result = model.predict(X)

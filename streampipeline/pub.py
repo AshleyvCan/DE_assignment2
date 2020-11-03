@@ -3,7 +3,8 @@ import os
 
 from google.cloud import pubsub_v1
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\jeroe\OneDrive - TU Eindhoven\DSE\Semester 1.1\Data Engeneering\de01-8af7146e9175.json"
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data_engineering/DE2020/lab8/de2020-6-6a00f5d73faa.json'
+
 def create_topic(project_id, topic_id):
     # create the publisher client
     publisher = pubsub_v1.PublisherClient()
@@ -35,9 +36,7 @@ def publish_messages(project_id, topic_id, data_file):
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
-    # create_topic("onyx-syntax-289118", "game_data")
-    #create_topic("onyx-syntax-289118", "teamscore")
-    #create_topic("onyx-syntax-289118", "test_data")
+    create_topic("de2020-6", "test_data")
 
-    publish_messages("onyx-syntax-289118", "test_data", r"C:\Users\jeroe\OneDrive - TU Eindhoven\DSE\Semester 1.1\Data Engeneering\DE_assignment2\data\test")
+    publish_messages("de2020-6", "test_data", r"C:\Users\20200191\Documents\data_engineering\DE_assignment2\data\test")
 

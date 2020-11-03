@@ -4,7 +4,8 @@ from concurrent.futures import TimeoutError
 
 from google.cloud import pubsub_v1
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\jeroe\OneDrive - TU Eindhoven\DSE\Semester 1.1\Data Engeneering\de01-8af7146e9175.json"
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data_engineering/DE2020/lab8/de2020-6-6a00f5d73faa.json'
+
 def create_subscription(project_id, topic_id, subscription_id):
     """Create a new pull subscription on the given topic."""
     publisher = pubsub_v1.PublisherClient()
@@ -49,5 +50,5 @@ def read_data(project_id, subscription_id):
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
-    create_subscription("onyx-syntax-289118", "test_data", "test_data_sub1")
-    #read_data("onyx-syntax-289118", "test_data_sub1")
+    create_subscription("de2020-6", "test_data", "test_data_sub1")
+    #read_data("de2020-6", "test_data_sub1")
