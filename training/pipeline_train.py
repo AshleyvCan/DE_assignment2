@@ -15,6 +15,7 @@ from apache_beam.options.pipeline_options import SetupOptions
 from sklearn import neighbors, metrics
 from google.cloud import storage
 import joblib
+from sklearn.utils import shuffle
 
 import os
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data_engineering/DE2020/lab8/de2020-6-6a00f5d73faa.json'
@@ -29,6 +30,7 @@ def train_model(gs_data, project_id, bucket_name):
 
     X = df.loc[:, df.columns != 'RUL']
     Y = df['RUL']
+    X, Y = shuffle(X, Y, random_state=1)
 
     # Training of ML model
     knn_model = neighbors.KNeighborsClassifier(n_neighbors=2, weights='uniform')
@@ -39,6 +41,7 @@ def train_model(gs_data, project_id, bucket_name):
     print(X.head())
 
     # Evaluate model performance on training data
+    print(knn_model.predict(X))
     MAE_score = metrics.mean_absolute_error(Y, knn_model.predict(X))
     print(MAE_score)
     return json.dumps('MAE_score: '+ str(MAE_score), sort_keys=False, indent=4)
@@ -59,7 +62,7 @@ def run(argv=None, save_main_session=True):
     parser.add_argument(
         '--input',
         dest='input',
-        default='gs://de2020assignment2//preprocessing/train_data-00000-of-00001.csv',
+        default= 'gs://de2020assignment2//preprocessing/train_data-00000-of-00001.csv',
         help='Input file to process.')
     parser.add_argument(
         '--output',

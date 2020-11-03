@@ -23,6 +23,9 @@ import joblib
 import pandas as pd
 import numpy as np
 
+import os
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data_engineering/DE2020/lab8/de2020-6-6a00f5d73faa.json'
+
 def timestamp2str(t, fmt='%Y-%m-%d %H:%M:%S.000'):
     """Converts a unix timestamp into a formatted string."""
     return datetime.fromtimestamp(t).strftime(fmt)

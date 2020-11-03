@@ -28,7 +28,7 @@ def test_model(gs_data, project_id, bucket_name):
                'Sensor_6','Sensor_7','Sensor_8','Sensor_9','Sensor_10','Sensor_11','Sensor_12','Sensor_13','Sensor_14',
                'Sensor_15','Sensor_16','Sensor_17','Sensor_18','Sensor_19','Sensor_20','RUL']
     df = pd.read_csv(io.TextIOWrapper(gs_data), index_col = 0, names = headers)
-
+    print(df.head())
 
     X = df.loc[:, df.columns != 'RUL']
     Y = df['RUL']
@@ -39,12 +39,17 @@ def test_model(gs_data, project_id, bucket_name):
     # Apply the feature selection method to the data
     columns_variance = variance_selector.get_support()
     X = pd.DataFrame(variance_selector.transform(X), columns=X.columns.values[columns_variance])
+    print(X.head())
+    print(type(Y))
+    print(X.columns)
 
     # Load of ML model
     knn_model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020assignment2/ml_models/model.joblib'))
 
     # Evaluate model performance on validation data
-    MAE_score = metrics.mean_absolute_error(Y, knn_model.predict(X))
+    pred = knn_model.predict(X)
+    print(pred)
+    MAE_score = metrics.mean_absolute_error(Y, pred)
     print(MAE_score)
     return json.dumps('MAE_score: '+ str(MAE_score), sort_keys=False, indent=4)
 
