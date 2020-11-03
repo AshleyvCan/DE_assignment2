@@ -19,52 +19,48 @@ import joblib
 import os
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data_engineering/DE2020/lab8/de2020-6-6a00f5d73faa.json'
 
-
-# Train and Save ML model
-def train_model(gs_data, project_id, bucket_name):
+# Predict and Test ML model
+def test_model(gs_data, project_id, bucket_name):
 
     # Read the csv file
     gs_data = beam.io.filesystems.FileSystems.open(gs_data)
-    df = pd.read_csv(io.TextIOWrapper(gs_data), index_col = 0)
+    headers = ['Setting_0','Setting_1','Setting_2','Sensor_0','Sensor_1','Sensor_2','Sensor_3','Sensor_4','Sensor_5',
+               'Sensor_6','Sensor_7','Sensor_8','Sensor_9','Sensor_10','Sensor_11','Sensor_12','Sensor_13','Sensor_14',
+               'Sensor_15','Sensor_16','Sensor_17','Sensor_18','Sensor_19','Sensor_20','RUL']
+    df = pd.read_csv(io.TextIOWrapper(gs_data), index_col = 0, names = headers)
+
 
     X = df.loc[:, df.columns != 'RUL']
     Y = df['RUL']
 
-    # Training of ML model
-    knn_model = neighbors.KNeighborsClassifier(n_neighbors=2, weights='uniform')
-    knn_model.fit(X, Y)
+    # Load variance_selector
+    variance_selector = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020assignment2/preproces_models/variance_selector.joblib'))
 
-    # Save model in bucket
-    save_model(knn_model, project_id, bucket_name)
-    print(X.head())
+    # Apply the feature selection method to the data
+    columns_variance = variance_selector.get_support()
+    X = pd.DataFrame(variance_selector.transform(X), columns=X.columns.values[columns_variance])
 
-    # Evaluate model performance on training data
+    # Load of ML model
+    knn_model = joblib.load(beam.io.filesystems.FileSystems.open('gs://de2020assignment2/ml_models/model.joblib'))
+
+    # Evaluate model performance on validation data
     MAE_score = metrics.mean_absolute_error(Y, knn_model.predict(X))
     print(MAE_score)
     return json.dumps('MAE_score: '+ str(MAE_score), sort_keys=False, indent=4)
 
-# Save model in bucket
-def save_model(model, project_id, bucket_name):
-    joblib.dump(model,"model.joblib")
-
-    client = storage.Client(project=project_id)
-    bucket = client.get_bucket(bucket_name)
-
-    blob = bucket.blob('ml_models/model.joblib')
-    blob.upload_from_filename('model.joblib')
-    logging.info("The ML model is saved in a GCP bucket")
 
 def run(argv=None, save_main_session=True):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--input',
         dest='input',
-        default='gs://de2020assignment2//preprocessing/train_data-00000-of-00001.csv',
+        default='gs://de2020assignment2//preprocessing/validation_data-00000-of-00001.csv',
         help='Input file to process.')
     parser.add_argument(
         '--output',
         dest='output',
         help='Output file to write results to.')
+
     parser.add_argument(
         '--pid',
         dest='pid',
@@ -81,11 +77,11 @@ def run(argv=None, save_main_session=True):
     pipeline_options = PipelineOptions(pipeline_args)
     pipeline_options.view_as(SetupOptions).save_main_session = save_main_session
 
-    # Train and save ML model with training data
+    # Test ML model with validation data
     # Output is the model performance score
     with beam.Pipeline(options=pipeline_options) as p:
         output = (p | 'CreateFileNameObject' >> beam.Create([known_args.input])
-                  | 'TrainAndSaveMLmodel' >> beam.FlatMap(train_model, known_args.pid, known_args.mbucket)
+                  | 'TestMLmodel' >> beam.FlatMap(test_model, known_args.pid, known_args.mbucket)
                   )
         output | 'Write' >> WriteToText(known_args.output)
 

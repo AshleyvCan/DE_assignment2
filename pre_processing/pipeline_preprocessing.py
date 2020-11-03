@@ -17,16 +17,34 @@ from sklearn import feature_selection
 from google.cloud import storage
 import joblib
 
+import os
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data_engineering/DE2020/lab8/de2020-6-6a00f5d73faa.json'
 
-def convert_df(gs_data):
-    gs_data = beam.io.filesystems.FileSystems.open(gs_data)
-    df = pd.read_csv(io.TextIOWrapper(gs_data), index_col = 0)
-    print(df.head())
+
+def convert_to_df(gs_data):
+    dict_csv = csv.DictReader(gs_data)
+
+    # Create the DataFrame
+    df = pd.DataFrame(dict_csv)
+
+    # Remove index and convert data to numeric
+    #df = df.iloc[:, 1:]
+
+    headers = ['Setting_0', 'Setting_1', 'Setting_2', 'Sensor_0', 'Sensor_1', 'Sensor_2', 'Sensor_3', 'Sensor_4',
+               'Sensor_5','Sensor_6', 'Sensor_7', 'Sensor_8', 'Sensor_9', 'Sensor_10', 'Sensor_11', 'Sensor_12',
+               'Sensor_13','Sensor_14','Sensor_15', 'Sensor_16', 'Sensor_17', 'Sensor_18', 'Sensor_19', 'Sensor_20',
+               'RUL']
+    df = df.apply(pd.to_numeric)
+
+    df.columns = headers
+
     return df
 
 # Remove features with low or no variance
-def remove_novariance(gs_data, project_id, bucket_name, threshold = 0):
-    df = convert_df(gs_data)
+def remove_novariance(joblib_name, project_id, bucket_name, gs_data, threshold = 0):
+    df = convert_to_df(gs_data)
+
+    # Perform feature selection only on the independent variables
     X = df.loc[:, df.columns != 'RUL']
 
     # Fit the feature selection method
@@ -34,14 +52,14 @@ def remove_novariance(gs_data, project_id, bucket_name, threshold = 0):
     variance_selector.fit(X)
 
     # Save the selector in bucket
-    save_model(variance_selector, project_id, bucket_name, 'variance_selector.joblib')
+    save_model(variance_selector, project_id, bucket_name, joblib_name)
 
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
     X = pd.DataFrame(variance_selector.transform(X), columns = X.columns.values[columns_variance])
 
     df = pd.concat([X, df['RUL']], axis =1).to_csv()
-    yield df #convert.to_pcollection(df)
+    yield df
 
 # Save model in bucket
 def save_model(model, project_id, bucket_name, model_file):
@@ -54,17 +72,31 @@ def save_model(model, project_id, bucket_name, model_file):
     blob.upload_from_filename(model_file)
     logging.info(model_file + "is saved in a GCP bucket")
 
+# Split the data in train and validation set
+# The first 20000 rows are in de training set
+def splitting(row,n_partitions):
+    print(row)
+    if row.split(',')[0] == '' or int(row.split(',')[0]) < 20000:
+        return 0
+    return 1
+
 def run(argv=None, save_main_session=True):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--input',
         dest='input',
+        default = 'gs://de2020assignment2/data/train_set.csv',
         help='Input file to process.')
     parser.add_argument(
-        '--output',
-        dest='output',
+        '--output1',
+        dest='output1',
+        default = 'gs://de2020assignment2/preprocessing/train_data',
         help='Output file to write results to.')
-
+    parser.add_argument(
+        '--output2',
+        dest='output2',
+        default='gs://de2020assignment2/preprocessing/validation_data',
+        help='Output file to write results to.')
     parser.add_argument(
         '--pid',
         dest='pid',
@@ -84,11 +116,19 @@ def run(argv=None, save_main_session=True):
     # Train and save feature selection models and apply these pre-processing steps on train data
     with beam.Pipeline(options=pipeline_options) as p:
 
-        output = (p | 'Create FileName Object' >> beam.Create([known_args.input])
-                 | 'RemoveFeatureNoVariance' >> beam.ParDo(remove_novariance, known_args.pid, known_args.mbucket))
+        # Split data in train and validation set
+        train_set, validation_set = (p | 'Create FileName Object' >> beam.io.ReadFromText(known_args.input)
+                  | 'SplitTrainAndValidation' >> beam.Partition(splitting,2))
 
-        output | 'Write' >> WriteToText(known_args.output, file_name_suffix=".csv")
-        
+
+        # Train feature selector only on training data
+        train_set = (p | 'SpecifyPreprocessing' >> beam.Create(['variance_selector.joblib'])
+                   |'RemoveFeatureNoVariance' >> beam.ParDo(remove_novariance, known_args.pid, known_args.mbucket, gs_data = beam.pvalue.AsList(train_set)))
+
+        # Write datasets to GDS
+        train_set | 'WriteTrain' >> WriteToText(known_args.output1, file_name_suffix=".csv")
+        validation_set | 'WriteValidation' >> WriteToText(known_args.output2,
+                                                          file_name_suffix=".csv")
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
