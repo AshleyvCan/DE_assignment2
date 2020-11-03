@@ -52,7 +52,7 @@ def remove_novariance(joblib_name, project_id, bucket_name, gs_data, threshold =
     variance_selector.fit(X)
 
     # Save the selector in bucket
-    save_model(variance_selector, project_id, bucket_name, joblib_name)#'variance_selector.joblib')
+    save_model(variance_selector, project_id, bucket_name, joblib_name)
 
     # Apply selector on training data
     columns_variance = variance_selector.get_support()
