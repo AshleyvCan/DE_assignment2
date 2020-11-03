@@ -17,7 +17,7 @@ from google.cloud import storage
 import joblib
 
 import os
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data_engineering/DE2020/lab8/de2020-6-6a00f5d73faa.json'
+#os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data_engineering/DE2020/lab8/de2020-6-6a00f5d73faa.json'
 
 # Predict and Test ML model
 def test_model(gs_data, project_id, bucket_name):
