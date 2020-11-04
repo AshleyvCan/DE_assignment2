@@ -117,7 +117,7 @@ def run(argv=None, save_main_session=True):
     with beam.Pipeline(options=pipeline_options) as p:
 
         # Split data in train and validation set
-        train_set, validation_set = (p | 'Create FileName Object' >> beam.io.ReadFromText(known_args.input)
+        train_set, validation_set = (p | 'Read File' >> beam.io.ReadFromText(known_args.input)
                   | 'SplitTrainAndValidation' >> beam.Partition(splitting,2))
 
 
