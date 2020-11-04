@@ -10,7 +10,7 @@ import plotly.graph_objects
 import plotly.figure_factory
 import os
 from google.cloud import bigquery_storage
-import google.auth
+import google.auth as ga
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data_engineering/DE2020/lab8/de2020-6-6a00f5d73faa.json'
 
@@ -20,24 +20,23 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:/Users/20200191/Documents/data
 #https://cloud.google.com/bigquery/docs/bigquery-storage-python-pandas
 # Read the data from Big Query table
 def read_data():
-    credentials, project_id = google.auth.default(
-        scopes=["https://www.googleapis.com/auth/cloud-platform"]
-    )
-    storage_client = bigquery_storage.BigQueryReadClient(credentials=credentials)
+    cred, project_id = ga.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
 
-    gbq_client = bigquery.Client(credentials=credentials, project=project_id)
+    storage_client = bigquery_storage.BigQueryReadClient(credentials=cred)
+
+    gbq_client = bigquery.Client(credentials=cred, project=project_id)
+
+    # Import the table 'predictions' from the dataset 'machine'
     sensor_table = bigquery.TableReference.from_string('de2020-6.machine.predictions')
 
-    sensor_data = gbq_client.list_rows(
-        sensor_table,
-        selected_fields=[
+    sensor_data = gbq_client.list_rows(sensor_table, selected_fields=[
             bigquery.SchemaField("timestamp", "INTEGER"),
-            bigquery.SchemaField("RUL", "INTEGER"),
-        ],
-        max_results=1000000
-    )
+            bigquery.SchemaField("RUL", "INTEGER"),],max_results=1000000 )
 
+    # Convert the table to a dataframe
     df = sensor_data.to_dataframe(storage_client)
+
+    # Return the last 35 rows of the table
     df = df.sort_values(by=['timestamp'])
     return df.tail(35)
 
